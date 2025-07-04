@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>供需均衡互動教學 | Supply and Demand Equilibrium Interactive Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        
+        .dark {
+            color-scheme: dark;
+        }
+        
+        canvas {
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .dark canvas {
+            background: #2d3748;
+        }
+        
+        .btn-primary {
+            background: #5D5CDE;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #4c4bcc;
+            transform: translateY(-1px);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .card {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+        }
+        
+        .animate-bounce-gentle {
+            animation: bounce-gentle 1s ease-in-out infinite;
+        }
+        
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- 語言切換按鈕 -->
+        <div class="flex justify-end mb-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+                <button id="langCN" class="px-4 py-2 text-sm font-medium bg-primary text-white">中文</button>
+                <button id="langEN" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">English</button>
+            </div>
+        </div>
+
+        <!-- 標題 -->
+        <div class="text-center mb-8">
+            <h1 id="mainTitle" class="text-3xl md:text-4xl font-bold mb-2 text-primary">供需均衡互動教學</h1>
+            <p id="mainSubtitle" class="text-lg text-gray-600 dark:text-gray-400">觀察需求和供給同時變化對均衡價格和數量的影響</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 控制面板 -->
+            <div class="lg:col-span-1">
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-center">控制面板</h2>
+                    
+                    <!-- 需求調整 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-3 text-blue-600 dark:text-blue-400">📈 需求曲線調整</label>
+                        <div class="space-y-3">
+                            <button id="increaseDemand" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg w-full text-base font-medium transition-all duration-200">
+                                需求上升 ↗️
+                            </button>
+                            <button id="decreaseDemand" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg w-full text-base font-medium transition-all duration-200">
+                                需求下降 ↘️
+                            </button>
+                            <button id="resetDemand" class="bg-blue-300 hover:bg-blue-400 text-white px-4 py-2 rounded-lg w-full text-base font-medium transition-all duration-200">
+                                重設需求 🔄
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 供給調整 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-3 text-red-600 dark:text-red-400">📊 供給曲線調整</label>
+                        <div class="space-y-3">
+                            <button id="increaseSupply" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg w-full text-base font-medium transition-all duration-200">
+                                供給上升 ↗️
+                            </button>
+                            <button id="decreaseSupply" class="bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-lg w-full text-base font-medium transition-all duration-200">
+                                供給下降 ↘️
+                            </button>
+                            <button id="resetSupply" class="bg-red-300 hover:bg-red-400 text-white px-4 py-2 rounded-lg w-full text-base font-medium transition-all duration-200">
+                                重設供給 🔄
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 組合調整 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-3 text-purple-600 dark:text-purple-400">🔄 組合調整</label>
+                        <div class="space-y-3">
+                            <button id="resetAll" class="btn-primary text-white px-4 py-2 rounded-lg w-full text-base font-medium">
+                                全部重設 ↺
+                            </button>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <!-- 圖表區域 -->
+            <div class="lg:col-span-2">
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-center">供需均衡圖</h2>
+                    <div class="relative">
+                        <canvas id="economicsChart" width="600" height="400" class="w-full max-w-full"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測驗區域 -->
+        <div class="mt-8 card p-6">
+            <h2 class="text-xl font-semibold mb-6 text-center">📝 互動測驗</h2>
+            
+            <!-- 問題 1 -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium mb-4">問題 1：當需求上升和供給同時上升時，均衡數量會如何改變？</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q1" value="A" class="mr-3 text-primary">
+                        <span class="text-base">A. 必定增加</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q1" value="B" class="mr-3 text-primary">
+                        <span class="text-base">B. 必定減少</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q1" value="C" class="mr-3 text-primary">
+                        <span class="text-base">C. 不變</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q1" value="D" class="mr-3 text-primary">
+                        <span class="text-base">D. 無法確定</span>
+                    </label>
+                </div>
+                <div id="answer1" class="mt-4 p-4 rounded-lg hidden"></div>
+            </div>
+
+            <!-- 問題 2 -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium mb-4">問題 2：當需求下降和供給同時下降時，均衡價格會如何改變？</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q2" value="A" class="mr-3 text-primary">
+                        <span class="text-base">A. 必定上升</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q2" value="B" class="mr-3 text-primary">
+                        <span class="text-base">B. 必定下降</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q2" value="C" class="mr-3 text-primary">
+                        <span class="text-base">C. 不變</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q2" value="D" class="mr-3 text-primary">
+                        <span class="text-base">D. 無法確定</span>
+                    </label>
+                </div>
+                <div id="answer2" class="mt-4 p-4 rounded-lg hidden"></div>
+            </div>
+
+            <!-- 問題 3 -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium mb-4">問題 3：當需求上升程度大於供給上升程度時，均衡價格會如何改變？</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q3" value="A" class="mr-3 text-primary">
+                        <span class="text-base">A. 上升</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q3" value="B" class="mr-3 text-primary">
+                        <span class="text-base">B. 下降</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q3" value="C" class="mr-3 text-primary">
+                        <span class="text-base">C. 不變</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q3" value="D" class="mr-3 text-primary">
+                        <span class="text-base">D. 無法確定</span>
+                    </label>
+                </div>
+                <div id="answer3" class="mt-4 p-4 rounded-lg hidden"></div>
+            </div>
+
+            <!-- 問題 4 -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium mb-4">問題 4：當需求上升和供給同時下降時，均衡價格會如何改變？</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q4" value="A" class="mr-3 text-primary">
+                        <span class="text-base">A. 必定上升</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q4" value="B" class="mr-3 text-primary">
+                        <span class="text-base">B. 必定下降</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q4" value="C" class="mr-3 text-primary">
+                        <span class="text-base">C. 不變</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q4" value="D" class="mr-3 text-primary">
+                        <span class="text-base">D. 無法確定</span>
+                    </label>
+                </div>
+                <div id="answer4" class="mt-4 p-4 rounded-lg hidden"></div>
+            </div>
+
+            <!-- 問題 5 -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-4">問題 5：當需求下降幅度等於供給上升幅度時，均衡價格會如何改變？</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q5" value="A" class="mr-3 text-primary">
+                        <span class="text-base">A. 必定上升</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q5" value="B" class="mr-3 text-primary">
+                        <span class="text-base">B. 必定下降</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q5" value="C" class="mr-3 text-primary">
+                        <span class="text-base">C. 不變</span>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <input type="radio" name="q5" value="D" class="mr-3 text-primary">
+                        <span class="text-base">D. 無法確定</span>
+                    </label>
+                </div>
+                <div id="answer5" class="mt-4 p-4 rounded-lg hidden"></div>
+            </div>
+        </div>
+
+        <!-- 說明區域 -->
+        <div class="mt-8 card p-6">
+            <h2 class="text-xl font-semibold mb-4">經濟學概念說明</h2>
+            
+            <!-- 互動說明 -->
+            <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h3 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">📱 互動功能</h3>
+                <p class="text-sm text-blue-600 dark:text-blue-400">
+                    點擊按鈕創建新的需求曲線（D₂）和供給曲線（S₂），然後可以用滑鼠或手指直接拖動曲線上下移動，觀察均衡點的實時變化！藍色曲線為需求，紅色曲線為供給。
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div>
+                    <h3 class="font-semibold text-blue-500 mb-2">需求變化的影響：</h3>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
+                        <li><strong>需求上升：</strong>曲線右移，價格↑，數量↑</li>
+                        <li><strong>需求下降：</strong>曲線左移，價格↓，數量↓</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-red-500 mb-2">供給變化的影響：</h3>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
+                        <li><strong>供給上升：</strong>曲線右移，價格↓，數量↑</li>
+                        <li><strong>供給下降：</strong>曲線左移，價格↑，數量↓</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-purple-500 mb-2">同時變化的影響：</h3>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
+                        <li><strong>數量：</strong>同向變化時確定，反向時不確定</li>
+                        <li><strong>價格：</strong>反向變化時確定，同向時不確定</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 深色模式設定
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // 經濟學圖表類
+        class EconomicsChart {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                
+                // 需求和供給偏移
+                this.demandShift = 0;
+                this.supplyShift = 0;
+                
+                // 設定圖表邊距
+                this.margin = 60;
+                this.chartWidth = this.width - 2 * this.margin;
+                this.chartHeight = this.height - 2 * this.margin;
+                
+                // 拖動相關狀態
+                this.isDragging = false;
+                this.dragCurveType = null; // 'demand' 或 'supply'
+                this.isHovering = false;
+                this.dragStartY = 0;
+                this.initialShift = 0;
+                
+                this.setupEventListeners();
+                this.setupInteractionListeners();
+                this.draw();
+            }
+            
+            setupEventListeners() {
+                // 響應式調整
+                const resizeCanvas = () => {
+                    const container = this.canvas.parentElement;
+                    const rect = container.getBoundingClientRect();
+                    const scale = Math.min(rect.width / 600, 1);
+                    this.canvas.style.transform = `scale(${scale})`;
+                    this.canvas.style.transformOrigin = 'top left';
+                };
+                
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+            }
+            
+            // 原始需求函數
+            originalDemandFunction(quantity) {
+                return 15 - 0.05 * quantity;
+            }
+            
+            // 新需求函數
+            demandFunction(quantity) {
+                return 15 - 0.05 * quantity + this.demandShift;
+            }
+            
+            // 原始供給函數
+            originalSupplyFunction(quantity) {
+                return 5 + 0.05 * quantity;
+            }
+            
+            // 新供給函數
+            supplyFunction(quantity) {
+                return 5 + 0.05 * quantity + this.supplyShift;
+            }
+            
+            // 計算原始均衡點
+            calculateOriginalEquilibrium() {
+                const equilibriumQuantity = 100;
+                const equilibriumPrice = 10;
+                return { quantity: equilibriumQuantity, price: equilibriumPrice };
+            }
+            
+            // 計算新均衡點
+            calculateNewEquilibrium() {
+                // 求解：15 - 0.05 * Q + demandShift = 5 + 0.05 * Q + supplyShift
+                // 0.1 * Q = 10 + demandShift - supplyShift
+                const equilibriumQuantity = (10 + this.demandShift - this.supplyShift) / 0.1;
+                const equilibriumPrice = this.demandFunction(equilibriumQuantity);
+                
+                return { quantity: equilibriumQuantity, price: equilibriumPrice };
+            }
+            
+            // 座標轉換
+            toCanvasX(quantity) {
+                return this.margin + (quantity / 200) * this.chartWidth;
+            }
+            
+            toCanvasY(price) {
+                return this.height - this.margin - ((price - 0) / 20) * this.chartHeight;
+            }
+            
+            draw() {
+                // 清除畫布
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                // 設定顏色（根據深色模式）
+                const isDark = document.documentElement.classList.contains('dark');
+                const textColor = isDark ? '#e2e8f0' : '#374151';
+                const gridColor = isDark ? '#4a5568' : '#d1d5db';
+                const axisColor = isDark ? '#718096' : '#6b7280';
+                
+                // 繪製座標軸
+                this.drawAxes(textColor, axisColor);
+                
+                // 繪製格線
+                this.drawGrid(gridColor);
+                
+                // 繪製曲線
+                this.drawDemandCurve();
+                this.drawSupplyCurve();
+                
+                // 繪製均衡點
+                this.drawEquilibrium();
+                
+                // 更新數值顯示
+                this.updateDisplay();
+            }
+            
+            drawAxes(textColor, axisColor) {
+                this.ctx.strokeStyle = axisColor;
+                this.ctx.lineWidth = 2;
+                this.ctx.font = '14px Noto Sans TC';
+                this.ctx.fillStyle = textColor;
+                
+                // X軸
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.margin, this.height - this.margin);
+                this.ctx.lineTo(this.width - this.margin, this.height - this.margin);
+                this.ctx.stroke();
+                
+                // Y軸
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.margin, this.margin);
+                this.ctx.lineTo(this.margin, this.height - this.margin);
+                this.ctx.stroke();
+                
+                // 軸標籤 - 根據當前語言顯示
+                const t = translations[currentLang];
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(t.axisLabels.quantity, this.width - this.margin - 20, this.height - 20);
+                
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(t.axisLabels.price, 15, 25);
+            }
+            
+            drawGrid(gridColor) {
+                this.ctx.strokeStyle = gridColor;
+                this.ctx.lineWidth = 0.3;
+                
+                // 垂直線
+                for (let q = 0; q <= 200; q += 50) {
+                    const x = this.toCanvasX(q);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, this.margin);
+                    this.ctx.lineTo(x, this.height - this.margin);
+                    this.ctx.stroke();
+                }
+                
+                // 水平線
+                for (let p = 0; p <= 20; p += 5) {
+                    const y = this.toCanvasY(p);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.margin, y);
+                    this.ctx.lineTo(this.width - this.margin, y);
+                    this.ctx.stroke();
+                }
+            }
+            
+            drawDemandCurve() {
+                // 原始需求曲線 D₁
+                this.ctx.strokeStyle = '#3b82f6';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                
+                for (let q = 0; q <= 300; q += 1) {
+                    const price = this.originalDemandFunction(q);
+                    if (price < 0) continue;
+                    
+                    const x = this.toCanvasX(q);
+                    const y = this.toCanvasY(price);
+                    
+                    if (q === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                }
+                
+                this.ctx.stroke();
+                
+                // 新需求曲線 D₂
+                if (this.demandShift !== 0) {
+                    this.ctx.strokeStyle = '#1d4ed8';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    
+                    for (let q = 0; q <= 300; q += 1) {
+                        const price = this.demandFunction(q);
+                        if (price < 0) continue;
+                        
+                        const x = this.toCanvasX(q);
+                        const y = this.toCanvasY(price);
+                        
+                        if (q === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    this.ctx.stroke();
+                    
+                    // 繪製 D₁ 到 D₂ 的移動箭頭
+                    this.drawDemandShiftArrow();
+                }
+                
+                // 標籤
+                this.ctx.font = 'bold 16px Noto Sans TC';
+                
+                // D₁ 標籤
+                const d1EndQ = 200;
+                const d1EndPrice = this.originalDemandFunction(d1EndQ);
+                if (d1EndPrice > 0) {
+                    const d1EndX = this.toCanvasX(d1EndQ);
+                    const d1EndY = this.toCanvasY(d1EndPrice);
+                    
+                    this.ctx.fillStyle = '#3b82f6';
+                    this.ctx.fillText('D₁', d1EndX + 10, d1EndY + 5);
+                }
+                
+                // D₂ 標籤
+                if (this.demandShift !== 0) {
+                    const d2EndQ = 200;
+                    const d2EndPrice = this.demandFunction(d2EndQ);
+                    if (d2EndPrice > 0) {
+                        const d2EndX = this.toCanvasX(d2EndQ);
+                        const d2EndY = this.toCanvasY(d2EndPrice);
+                        
+                        this.ctx.fillStyle = '#1d4ed8';
+                        this.ctx.fillText('D₂', d2EndX + 10, d2EndY + 5);
+                    }
+                }
+            }
+            
+            drawSupplyCurve() {
+                // 原始供給曲線 S₁
+                this.ctx.strokeStyle = '#ef4444';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                
+                for (let q = 0; q <= 300; q += 1) {
+                    const price = this.originalSupplyFunction(q);
+                    if (price > 20) continue;
+                    
+                    const x = this.toCanvasX(q);
+                    const y = this.toCanvasY(price);
+                    
+                    if (q === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                }
+                
+                this.ctx.stroke();
+                
+                // 新供給曲線 S₂
+                if (this.supplyShift !== 0) {
+                    this.ctx.strokeStyle = '#dc2626';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    
+                    for (let q = 0; q <= 300; q += 1) {
+                        const price = this.supplyFunction(q);
+                        if (price > 20 || price < 0) continue;
+                        
+                        const x = this.toCanvasX(q);
+                        const y = this.toCanvasY(price);
+                        
+                        if (q === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    this.ctx.stroke();
+                    
+                    // 繪製 S₁ 到 S₂ 的移動箭頭
+                    this.drawSupplyShiftArrow();
+                }
+                
+                // 標籤
+                this.ctx.font = 'bold 16px Noto Sans TC';
+                
+                // S₁ 標籤
+                const s1EndQ = 200;
+                const s1EndPrice = this.originalSupplyFunction(s1EndQ);
+                if (s1EndPrice <= 20) {
+                    const s1EndX = this.toCanvasX(s1EndQ);
+                    const s1EndY = this.toCanvasY(s1EndPrice);
+                    
+                    this.ctx.fillStyle = '#ef4444';
+                    this.ctx.fillText('S₁', s1EndX + 10, s1EndY - 8);
+                }
+                
+                // S₂ 標籤
+                if (this.supplyShift !== 0) {
+                    const s2EndQ = 200;
+                    const s2EndPrice = this.supplyFunction(s2EndQ);
+                    if (s2EndPrice <= 20 && s2EndPrice > 0) {
+                        const s2EndX = this.toCanvasX(s2EndQ);
+                        const s2EndY = this.toCanvasY(s2EndPrice);
+                        
+                        this.ctx.fillStyle = '#dc2626';
+                        this.ctx.fillText('S₂', s2EndX + 10, s2EndY - 8);
+                    }
+                }
+            }
+            
+            drawEquilibrium() {
+                const originalEq = this.calculateOriginalEquilibrium();
+                const originalX = this.toCanvasX(originalEq.quantity);
+                const originalY = this.toCanvasY(originalEq.price);
+                
+                // 原始均衡點虛線
+                this.ctx.strokeStyle = '#9ca3af';
+                this.ctx.lineWidth = 1;
+                this.ctx.setLineDash([4, 4]);
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.margin, originalY);
+                this.ctx.lineTo(originalX, originalY);
+                this.ctx.stroke();
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(originalX, originalY);
+                this.ctx.lineTo(originalX, this.height - this.margin);
+                this.ctx.stroke();
+                
+                this.ctx.setLineDash([]);
+                
+                // 原始均衡點
+                this.ctx.fillStyle = '#6b7280';
+                this.ctx.strokeStyle = '#374151';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.arc(originalX, originalY, 7, 0, 2 * Math.PI);
+                this.ctx.fill();
+                this.ctx.stroke();
+                
+                // 標籤
+                this.ctx.font = 'bold 14px Noto Sans TC';
+                this.ctx.fillStyle = '#9ca3af';
+                this.ctx.fillText('P₁', this.margin - 25, originalY + 4);
+                this.ctx.fillText('Q₁', originalX - 8, this.height - this.margin + 20);
+                
+                // 新均衡點
+                if (this.demandShift !== 0 || this.supplyShift !== 0) {
+                    const newEq = this.calculateNewEquilibrium();
+                    const newX = this.toCanvasX(newEq.quantity);
+                    const newY = this.toCanvasY(newEq.price);
+                    
+                    // 新均衡點虛線
+                    this.ctx.strokeStyle = '#7c3aed';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash([6, 3]);
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.margin, newY);
+                    this.ctx.lineTo(newX, newY);
+                    this.ctx.stroke();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(newX, newY);
+                    this.ctx.lineTo(newX, this.height - this.margin);
+                    this.ctx.stroke();
+                    
+                    this.ctx.setLineDash([]);
+                    
+                    // 新均衡點
+                    this.ctx.fillStyle = '#7c3aed';
+                    this.ctx.strokeStyle = '#6d28d9';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(newX, newY, 7, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    this.ctx.stroke();
+                    
+                    // 標籤
+                    this.ctx.fillStyle = '#7c3aed';
+                    this.ctx.fillText('P₂', this.margin - 25, newY + 4);
+                    this.ctx.fillText('Q₂', newX - 8, this.height - this.margin + 20);
+                    
+                    // 繪製箭頭
+                    this.drawArrows(originalEq, newEq, originalX, originalY, newX, newY);
+                }
+            }
+            
+            drawArrows(originalEq, newEq, originalX, originalY, newX, newY) {
+                this.ctx.strokeStyle = '#f97316';
+                this.ctx.fillStyle = '#f97316';
+                this.ctx.lineWidth = 3;
+                
+                // P1 到 P2 的箭頭
+                if (Math.abs(newY - originalY) > 5) {
+                    this.drawArrow(this.margin - 45, originalY, this.margin - 45, newY);
+                }
+                
+                // Q1 到 Q2 的箭頭
+                if (Math.abs(newX - originalX) > 5) {
+                    this.drawArrow(originalX, this.height - this.margin + 35, newX, this.height - this.margin + 35);
+                }
+            }
+            
+            drawArrow(startX, startY, endX, endY) {
+                const headlen = 12;
+                const angle = Math.atan2(endY - startY, endX - startX);
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(startX, startY);
+                this.ctx.lineTo(endX, endY);
+                this.ctx.stroke();
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(endX, endY);
+                this.ctx.lineTo(endX - headlen * Math.cos(angle - Math.PI / 6), endY - headlen * Math.sin(angle - Math.PI / 6));
+                this.ctx.lineTo(endX - headlen * Math.cos(angle + Math.PI / 6), endY - headlen * Math.sin(angle + Math.PI / 6));
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke();
+            }
+            
+            // 繪製需求曲線移動箭頭
+            drawDemandShiftArrow() {
+                const arrowQ = 80; // 箭頭位置
+                const d1ArrowPrice = this.originalDemandFunction(arrowQ);
+                const d2ArrowPrice = this.demandFunction(arrowQ);
+                
+                const d1ArrowX = this.toCanvasX(arrowQ);
+                const d2ArrowX = this.toCanvasX(arrowQ);
+                const d1ArrowY = this.toCanvasY(d1ArrowPrice);
+                const d2ArrowY = this.toCanvasY(d2ArrowPrice);
+                
+                // 設定箭頭顏色為橙色
+                this.ctx.strokeStyle = '#f97316';
+                this.ctx.fillStyle = '#f97316';
+                this.ctx.lineWidth = 3;
+                
+                // 計算水平箭頭位置 (在兩條曲線之間的中點)
+                const arrowY = (d1ArrowY + d2ArrowY) / 2;
+                const arrowLength = 40;
+                
+                // 繪製水平箭頭
+                if (this.demandShift > 0) {
+                    // 需求上升：水平向右箭頭
+                    const startX = d1ArrowX - arrowLength / 2;
+                    const endX = d1ArrowX + arrowLength / 2;
+                    this.drawArrow(startX, arrowY, endX, arrowY);
+                } else {
+                    // 需求下降：水平向左箭頭
+                    const startX = d1ArrowX + arrowLength / 2;
+                    const endX = d1ArrowX - arrowLength / 2;
+                    this.drawArrow(startX, arrowY, endX, arrowY);
+                }
+            }
+            
+            // 繪製供給曲線移動箭頭
+            drawSupplyShiftArrow() {
+                const arrowQ = 120; // 箭頭位置
+                const s1ArrowPrice = this.originalSupplyFunction(arrowQ);
+                const s2ArrowPrice = this.supplyFunction(arrowQ);
+                
+                const s1ArrowX = this.toCanvasX(arrowQ);
+                const s2ArrowX = this.toCanvasX(arrowQ);
+                const s1ArrowY = this.toCanvasY(s1ArrowPrice);
+                const s2ArrowY = this.toCanvasY(s2ArrowPrice);
+                
+                // 設定箭頭顏色為橙色
+                this.ctx.strokeStyle = '#f97316';
+                this.ctx.fillStyle = '#f97316';
+                this.ctx.lineWidth = 3;
+                
+                // 計算水平箭頭位置 (在兩條曲線之間的中點)
+                const arrowY = (s1ArrowY + s2ArrowY) / 2;
+                const arrowLength = 40;
+                
+                // 繪製水平箭頭
+                if (this.supplyShift < 0) {
+                    // 供給上升：水平向右箭頭
+                    const startX = s1ArrowX - arrowLength / 2;
+                    const endX = s1ArrowX + arrowLength / 2;
+                    this.drawArrow(startX, arrowY, endX, arrowY);
+                } else {
+                    // 供給下降：水平向左箭頭
+                    const startX = s1ArrowX + arrowLength / 2;
+                    const endX = s1ArrowX - arrowLength / 2;
+                    this.drawArrow(startX, arrowY, endX, arrowY);
+                }
+            }
+            
+            updateDisplay() {
+                const newEq = this.calculateNewEquilibrium();
+                const newEquilibriumElement = document.getElementById('newEquilibrium');
+                if (newEquilibriumElement) {
+                    newEquilibriumElement.innerHTML = `
+                        <span class="text-gray-600 dark:text-gray-400">新均衡：</span>
+                        <span class="font-mono">P₂=${newEq.price.toFixed(1)}, Q₂=${newEq.quantity.toFixed(0)}</span>
+                    `;
+                }
+            }
+            
+            // 需求和供給調整方法
+            increaseDemand() {
+                this.demandShift += 3;
+                this.animateDraw();
+            }
+            
+            decreaseDemand() {
+                this.demandShift -= 3;
+                this.animateDraw();
+            }
+            
+            resetDemand() {
+                this.demandShift = 0;
+                this.animateDraw();
+            }
+            
+            increaseSupply() {
+                this.supplyShift -= 3;
+                this.animateDraw();
+            }
+            
+            decreaseSupply() {
+                this.supplyShift += 3;
+                this.animateDraw();
+            }
+            
+            resetSupply() {
+                this.supplyShift = 0;
+                this.animateDraw();
+            }
+            
+            resetAll() {
+                this.demandShift = 0;
+                this.supplyShift = 0;
+                this.animateDraw();
+            }
+            
+            animateDraw() {
+                this.canvas.style.transform += ' scale(1.02)';
+                setTimeout(() => {
+                    this.canvas.style.transform = this.canvas.style.transform.replace(' scale(1.02)', '');
+                    this.draw();
+                }, 100);
+                
+                this.draw();
+            }
+            
+            // 拖拽交互
+            setupInteractionListeners() {
+                this.canvas.addEventListener('mousedown', (e) => this.handleStart(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMove(e));
+                this.canvas.addEventListener('mouseup', (e) => this.handleEnd(e));
+                this.canvas.addEventListener('mouseleave', (e) => this.handleEnd(e));
+                
+                this.canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.handleStart(e.touches[0]);
+                });
+                this.canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    this.handleMove(e.touches[0]);
+                });
+                this.canvas.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.handleEnd(e);
+                });
+                
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (!this.isDragging) {
+                        this.updateCursor(e);
+                    }
+                });
+            }
+            
+            getEventPos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                
+                return {
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
+                };
+            }
+            
+            getNearCurve(pos) {
+                if (pos.x < this.margin || pos.x > this.width - this.margin) return null;
+                if (pos.y < this.margin || pos.y > this.height - this.margin) return null;
+                
+                const tolerance = 15;
+                const quantity = ((pos.x - this.margin) / this.chartWidth) * 200;
+                const price = ((this.height - this.margin - pos.y) / this.chartHeight) * 20;
+                
+                // 檢查需求曲線
+                if (this.demandShift !== 0) {
+                    const demandPrice = this.demandFunction(quantity);
+                    if (Math.abs(price - demandPrice) < tolerance * (20 / this.chartHeight)) {
+                        return 'demand';
+                    }
+                }
+                
+                // 檢查供給曲線
+                if (this.supplyShift !== 0) {
+                    const supplyPrice = this.supplyFunction(quantity);
+                    if (Math.abs(price - supplyPrice) < tolerance * (20 / this.chartHeight)) {
+                        return 'supply';
+                    }
+                }
+                
+                return null;
+            }
+            
+            handleStart(e) {
+                const pos = this.getEventPos(e);
+                const nearCurve = this.getNearCurve(pos);
+                
+                if (nearCurve) {
+                    this.isDragging = true;
+                    this.dragCurveType = nearCurve;
+                    this.dragStartY = pos.y;
+                    
+                    if (nearCurve === 'demand') {
+                        this.initialShift = this.demandShift;
+                    } else {
+                        this.initialShift = this.supplyShift;
+                    }
+                    
+                    this.canvas.style.cursor = 'grabbing';
+                }
+            }
+            
+            handleMove(e) {
+                const pos = this.getEventPos(e);
+                
+                if (this.isDragging && this.dragCurveType) {
+                    const deltaY = this.dragStartY - pos.y;
+                    const priceChange = (deltaY / this.chartHeight) * 20;
+                    
+                    if (this.dragCurveType === 'demand') {
+                        this.demandShift = Math.max(-10, Math.min(10, this.initialShift + priceChange));
+                    } else {
+                        this.supplyShift = Math.max(-10, Math.min(10, this.initialShift + priceChange));
+                    }
+                    
+                    this.draw();
+                }
+            }
+            
+            handleEnd(e) {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.dragCurveType = null;
+                    this.canvas.style.cursor = 'default';
+                }
+            }
+            
+            updateCursor(e) {
+                const pos = this.getEventPos(e);
+                const nearCurve = this.getNearCurve(pos);
+                
+                if (nearCurve) {
+                    this.canvas.style.cursor = 'grab';
+                } else {
+                    this.canvas.style.cursor = 'default';
+                }
+            }
+        }
+
+        // 語言翻譯內容
+        const translations = {
+            zh: {
+                mainTitle: "供需均衡互動教學",
+                mainSubtitle: "觀察需求和供給同時變化對均衡價格和數量的影響",
+                controlPanel: "控制面板",
+                demandAdjustment: "📈 需求曲線調整",
+                increaseDemand: "需求上升 ↗️",
+                decreaseDemand: "需求下降 ↘️",
+                resetDemand: "重設需求 🔄",
+                supplyAdjustment: "📊 供給曲線調整",
+                increaseSupply: "供給上升 ↗️",
+                decreaseSupply: "供給下降 ↘️",
+                resetSupply: "重設供給 🔄",
+                combinedAdjustment: "🔄 組合調整",
+                resetAll: "全部重設 ↺",
+                chartTitle: "供需均衡圖",
+                quizTitle: "📝 互動測驗",
+                conceptsTitle: "經濟學概念說明",
+                interactiveFeatures: "📱 互動功能",
+                interactiveDescription: "",
+                demandEffects: "需求變化的影響：",
+                demandIncrease: "需求上升：曲線右移，價格↑，數量↑",
+                demandDecrease: "需求下降：曲線左移，價格↓，數量↓",
+                supplyEffects: "供給變化的影響：",
+                supplyIncrease: "供給上升：曲線右移，價格↓，數量↑",
+                supplyDecrease: "供給下降：曲線左移，價格↑，數量↓",
+                simultaneousEffects: "同時變化的影響：",
+                quantityEffect: "數量：同向變化時確定，反向時不確定",
+                priceEffect: "價格：反向變化時確定，同向時不確定",
+                axisLabels: {
+                    quantity: "數量 (Quantity)",
+                    price: "價格 (Price)"
+                },
+                questions: {
+                    q1: {
+                        title: "問題 1：當需求上升和供給同時上升時，均衡數量會如何改變？",
+                        options: {
+                            A: "A. 必定增加",
+                            B: "B. 必定減少", 
+                            C: "C. 不變",
+                            D: "D. 無法確定"
+                        },
+                        correct: "正確！",
+                        wrong: "錯誤。",
+                        explanation: {
+                            correct: "當需求和供給同時上升時，兩者都推動數量增加，因此均衡數量必定增加。",
+                            wrong: "需求上升和供給上升都會增加均衡數量，因此數量必定增加。"
+                        }
+                    },
+                    q2: {
+                        title: "問題 2：當需求下降和供給同時下降時，均衡價格會如何改變？",
+                        options: {
+                            A: "A. 必定上升",
+                            B: "B. 必定下降",
+                            C: "C. 不變",
+                            D: "D. 無法確定"
+                        },
+                        correct: "正確！",
+                        wrong: "錯誤。",
+                        explanation: {
+                            correct: "需求下降使價格下降，供給下降使價格上升，兩個效應相反，最終價格變化無法確定，取決於哪個效應更強。",
+                            wrong: "需求下降和供給下降對價格的影響相反，因此價格變化無法確定。"
+                        }
+                    },
+                    q3: {
+                        title: "問題 3：當需求上升程度大於供給上升程度時，均衡價格會如何改變？",
+                        options: {
+                            A: "A. 上升",
+                            B: "B. 下降",
+                            C: "C. 不變",
+                            D: "D. 無法確定"
+                        },
+                        correct: "正確！",
+                        wrong: "錯誤。",
+                        explanation: {
+                            correct: "需求上升推高價格，供給上升壓低價格。當需求上升程度大於供給上升時，推高價格的力量更強，均衡價格上升。",
+                            wrong: "當需求上升程度大於供給上升時，推高價格的效應佔主導地位，均衡價格會上升。"
+                        }
+                    },
+                    q4: {
+                        title: "問題 4：當需求上升和供給同時下降時，均衡價格會如何改變？",
+                        options: {
+                            A: "A. 必定上升",
+                            B: "B. 必定下降",
+                            C: "C. 不變",
+                            D: "D. 無法確定"
+                        },
+                        correct: "正確！",
+                        wrong: "錯誤。",
+                        explanation: {
+                            correct: "當需求上升和供給下降時，兩個效應都推高價格，因此均衡價格必定上升。需求上升使價格上升，供給下降也使價格上升。",
+                            wrong: "需求上升和供給下降都會推高價格，兩個效應同向，因此均衡價格必定上升。"
+                        }
+                    },
+                    q5: {
+                        title: "問題 5：當需求下降幅度等於供給上升幅度時，均衡價格會如何改變？",
+                        options: {
+                            A: "A. 必定上升",
+                            B: "B. 必定下降",
+                            C: "C. 不變",
+                            D: "D. 無法確定"
+                        },
+                        correct: "正確！",
+                        wrong: "錯誤。",
+                        explanation: {
+                            correct: "當需求下降和供給上升時，兩個效應都推低價格。即使幅度相等，價格仍會下降，因為兩個力量都向同一方向作用。",
+                            wrong: "需求下降使價格下降，供給上升也使價格下降。兩個效應同向作用，均衡價格必定下降。"
+                        }
+                    }
+                }
+            },
+            en: {
+                mainTitle: "Supply and Demand Equilibrium Interactive Learning",
+                mainSubtitle: "Observe the effects of simultaneous changes in demand and supply on equilibrium price and quantity",
+                controlPanel: "Control Panel",
+                demandAdjustment: "📈 Demand Curve Adjustment",
+                increaseDemand: "Increase Demand ↗️",
+                decreaseDemand: "Decrease Demand ↘️",
+                resetDemand: "Reset Demand 🔄",
+                supplyAdjustment: "📊 Supply Curve Adjustment",
+                increaseSupply: "Increase Supply ↗️",
+                decreaseSupply: "Decrease Supply ↘️",
+                resetSupply: "Reset Supply 🔄",
+                combinedAdjustment: "🔄 Combined Adjustment",
+                resetAll: "Reset All ↺",
+                chartTitle: "Supply and Demand Equilibrium Chart",
+                quizTitle: "📝 Interactive Quiz",
+                conceptsTitle: "Economic Concepts Explanation",
+                interactiveFeatures: "📱 Interactive Features",
+                interactiveDescription: "",
+                demandEffects: "Effects of Demand Changes:",
+                demandIncrease: "Demand Increase: Curve shifts right, Price↑, Quantity↑",
+                demandDecrease: "Demand Decrease: Curve shifts left, Price↓, Quantity↓",
+                supplyEffects: "Effects of Supply Changes:",
+                supplyIncrease: "Supply Increase: Curve shifts right, Price↓, Quantity↑",
+                supplyDecrease: "Supply Decrease: Curve shifts left, Price↑, Quantity↓",
+                simultaneousEffects: "Effects of Simultaneous Changes:",
+                quantityEffect: "Quantity: Determinant when same direction, indeterminate when opposite",
+                priceEffect: "Price: Determinant when opposite direction, indeterminate when same",
+                axisLabels: {
+                    quantity: "Quantity",
+                    price: "Price"
+                },
+                questions: {
+                    q1: {
+                        title: "Question 1: When demand increases and supply increases simultaneously, how will equilibrium quantity change?",
+                        options: {
+                            A: "A. Must increase",
+                            B: "B. Must decrease",
+                            C: "C. Unchanged",
+                            D: "D. Cannot determine"
+                        },
+                        correct: "Correct!",
+                        wrong: "Incorrect.",
+                        explanation: {
+                            correct: "When both demand and supply increase simultaneously, both forces push quantity upward, so equilibrium quantity must increase.",
+                            wrong: "Both demand increase and supply increase will raise equilibrium quantity, so quantity must increase."
+                        }
+                    },
+                    q2: {
+                        title: "Question 2: When demand decreases and supply decreases simultaneously, how will equilibrium price change?",
+                        options: {
+                            A: "A. Must increase",
+                            B: "B. Must decrease",
+                            C: "C. Unchanged",
+                            D: "D. Cannot determine"
+                        },
+                        correct: "Correct!",
+                        wrong: "Incorrect.",
+                        explanation: {
+                            correct: "Demand decrease lowers price while supply decrease raises price. These opposite effects make the final price change indeterminate, depending on which effect is stronger.",
+                            wrong: "Demand decrease and supply decrease have opposite effects on price, so price change cannot be determined."
+                        }
+                    },
+                    q3: {
+                        title: "Question 3: When demand increase is greater than supply increase, how will equilibrium price change?",
+                        options: {
+                            A: "A. Rise",
+                            B: "B. Fall",
+                            C: "C. Unchanged", 
+                            D: "D. Cannot determine"
+                        },
+                        correct: "Correct!",
+                        wrong: "Incorrect.",
+                        explanation: {
+                            correct: "Demand increase pushes price up while supply increase pushes price down. When demand increase is greater, the upward pressure dominates and equilibrium price rises.",
+                            wrong: "When demand increase exceeds supply increase, the price-raising effect dominates and equilibrium price will rise."
+                        }
+                    },
+                    q4: {
+                        title: "Question 4: When demand increases and supply decreases simultaneously, how will equilibrium price change?",
+                        options: {
+                            A: "A. Must increase",
+                            B: "B. Must decrease",
+                            C: "C. Unchanged",
+                            D: "D. Cannot determine"
+                        },
+                        correct: "Correct!",
+                        wrong: "Incorrect.",
+                        explanation: {
+                            correct: "When demand increases and supply decreases, both effects push price upward, so equilibrium price must increase. Demand increase raises price, and supply decrease also raises price.",
+                            wrong: "Both demand increase and supply decrease will raise price. These same-direction effects result in a definite price increase."
+                        }
+                    },
+                    q5: {
+                        title: "Question 5: When demand decrease equals supply increase in magnitude, how will equilibrium price change?",
+                        options: {
+                            A: "A. Must increase",
+                            B: "B. Must decrease",
+                            C: "C. Unchanged",
+                            D: "D. Cannot determine"
+                        },
+                        correct: "Correct!",
+                        wrong: "Incorrect.",
+                        explanation: {
+                            correct: "When demand decreases and supply increases, both effects push price downward. Even with equal magnitudes, price will still fall because both forces work in the same direction.",
+                            wrong: "Demand decrease lowers price and supply increase also lowers price. These same-direction effects will definitely decrease equilibrium price."
+                        }
+                    }
+                }
+            }
+        };
+
+        let currentLang = 'zh';
+
+        // 語言切換功能
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            // 更新按鈕樣式
+            document.getElementById('langCN').className = lang === 'zh' ? 
+                'px-4 py-2 text-sm font-medium bg-primary text-white' : 
+                'px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700';
+            document.getElementById('langEN').className = lang === 'en' ? 
+                'px-4 py-2 text-sm font-medium bg-primary text-white' : 
+                'px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700';
+            
+            // 更新文本內容
+            updateTexts(t);
+            
+            // 重新繪製圖表（更新坐標軸標籤）
+            if (window.economicsChart) {
+                window.economicsChart.draw();
+            }
+        }
+
+        function updateTexts(t) {
+            // 基本元素更新
+            document.getElementById('mainTitle').textContent = t.mainTitle;
+            document.getElementById('mainSubtitle').textContent = t.mainSubtitle;
+            
+            // 控制面板
+            const elements = {
+                controlPanel: document.querySelector('.card h2'),
+                demandLabel: document.querySelector('label[class*="text-blue-600"]'),
+                increaseDemand: document.getElementById('increaseDemand'),
+                decreaseDemand: document.getElementById('decreaseDemand'),
+                resetDemand: document.getElementById('resetDemand'),
+                supplyLabel: document.querySelector('label[class*="text-red-600"]'),
+                increaseSupply: document.getElementById('increaseSupply'),
+                decreaseSupply: document.getElementById('decreaseSupply'),
+                resetSupply: document.getElementById('resetSupply'),
+                combinedLabel: document.querySelector('label[class*="text-purple-600"]'),
+                resetAll: document.getElementById('resetAll'),
+                chartTitle: document.querySelector('.card:nth-child(2) h2'),
+                quizTitle: document.querySelector('.mt-8.card h2'),
+                conceptsTitle: document.querySelector('.mt-8.card:last-child h2'),
+                interactiveTitle: document.querySelector('.font-semibold.text-blue-700'),
+                interactiveDesc: document.querySelector('.text-sm.text-blue-600')
+            };
+            
+            if (elements.controlPanel) elements.controlPanel.textContent = t.controlPanel;
+            if (elements.demandLabel) elements.demandLabel.textContent = t.demandAdjustment;
+            if (elements.increaseDemand) elements.increaseDemand.textContent = t.increaseDemand;
+            if (elements.decreaseDemand) elements.decreaseDemand.textContent = t.decreaseDemand;
+            if (elements.resetDemand) elements.resetDemand.textContent = t.resetDemand;
+            if (elements.supplyLabel) elements.supplyLabel.textContent = t.supplyAdjustment;
+            if (elements.increaseSupply) elements.increaseSupply.textContent = t.increaseSupply;
+            if (elements.decreaseSupply) elements.decreaseSupply.textContent = t.decreaseSupply;
+            if (elements.resetSupply) elements.resetSupply.textContent = t.resetSupply;
+            if (elements.combinedLabel) elements.combinedLabel.textContent = t.combinedAdjustment;
+            if (elements.resetAll) elements.resetAll.textContent = t.resetAll;
+            if (elements.chartTitle) elements.chartTitle.textContent = t.chartTitle;
+            if (elements.quizTitle) elements.quizTitle.textContent = t.quizTitle;
+            if (elements.conceptsTitle) elements.conceptsTitle.textContent = t.conceptsTitle;
+            if (elements.interactiveTitle) elements.interactiveTitle.textContent = t.interactiveFeatures;
+            if (elements.interactiveDesc) elements.interactiveDesc.textContent = t.interactiveDescription;
+            
+            // 更新問題和選項
+            updateQuestions(t);
+            
+            // 更新概念說明
+            updateConcepts(t);
+        }
+
+        function updateQuestions(t) {
+            // 更新問題標題和選項
+            for (let i = 1; i <= 5; i++) {
+                // 使用更精確的選擇器，只在測驗區域內查找
+                const quizSection = document.querySelector('.mt-8.card');
+                if (!quizSection) continue;
+                
+                const questionDivs = quizSection.querySelectorAll('div.mb-8, div.mb-6');
+                const questionDiv = questionDivs[i - 1]; // 第i個問題（索引從0開始）
+                
+                if (questionDiv && t.questions[`q${i}`]) {
+                    const questionTitle = questionDiv.querySelector('h3');
+                    const options = questionDiv.querySelectorAll(`input[name="q${i}"] + span`);
+                    
+                    if (questionTitle) {
+                        questionTitle.textContent = t.questions[`q${i}`].title;
+                    }
+                    
+                    options.forEach((option, index) => {
+                        const optionKey = ['A', 'B', 'C', 'D'][index];
+                        if (t.questions[`q${i}`].options[optionKey]) {
+                            option.textContent = t.questions[`q${i}`].options[optionKey];
+                        }
+                    });
+                }
+            }
+        }
+
+        function updateConcepts(t) {
+            const conceptElements = document.querySelectorAll('.grid.grid-cols-1.md\\:grid-cols-3 h3, .grid.grid-cols-1.md\\:grid-cols-3 li');
+            
+            if (conceptElements.length >= 6) {
+                conceptElements[0].textContent = t.demandEffects;
+                conceptElements[3].textContent = t.supplyEffects;
+                conceptElements[6].textContent = t.simultaneousEffects;
+            }
+            
+            const listItems = document.querySelectorAll('.grid.grid-cols-1.md\\:grid-cols-3 li');
+            if (listItems.length >= 6) {
+                // 根據當前語言使用正確的分隔符
+                const separator = currentLang === 'zh' ? '：' : ':';
+                
+                const demandIncreaseParts = t.demandIncrease.split(separator);
+                const demandDecreaseParts = t.demandDecrease.split(separator);
+                const supplyIncreaseParts = t.supplyIncrease.split(separator);
+                const supplyDecreaseParts = t.supplyDecrease.split(separator);
+                const quantityEffectParts = t.quantityEffect.split(separator);
+                const priceEffectParts = t.priceEffect.split(separator);
+                
+                listItems[0].innerHTML = `<strong>${demandIncreaseParts[0]}${separator}</strong>${demandIncreaseParts[1] || ''}`;
+                listItems[1].innerHTML = `<strong>${demandDecreaseParts[0]}${separator}</strong>${demandDecreaseParts[1] || ''}`;
+                listItems[2].innerHTML = `<strong>${supplyIncreaseParts[0]}${separator}</strong>${supplyIncreaseParts[1] || ''}`;
+                listItems[3].innerHTML = `<strong>${supplyDecreaseParts[0]}${separator}</strong>${supplyDecreaseParts[1] || ''}`;
+                listItems[4].innerHTML = `<strong>${quantityEffectParts[0]}${separator}</strong>${quantityEffectParts[1] || ''}`;
+                listItems[5].innerHTML = `<strong>${priceEffectParts[0]}${separator}</strong>${priceEffectParts[1] || ''}`;
+            }
+        }
+
+        // 初始化應用
+        document.addEventListener('DOMContentLoaded', function() {
+            const chart = new EconomicsChart('economicsChart');
+            window.economicsChart = chart;
+            
+            // 語言切換事件
+            document.getElementById('langCN').addEventListener('click', () => switchLanguage('zh'));
+            document.getElementById('langEN').addEventListener('click', () => switchLanguage('en'));
+            
+            // 需求控制按鈕
+            document.getElementById('increaseDemand').addEventListener('click', () => {
+                chart.increaseDemand();
+            });
+            
+            document.getElementById('decreaseDemand').addEventListener('click', () => {
+                chart.decreaseDemand();
+            });
+            
+            document.getElementById('resetDemand').addEventListener('click', () => {
+                chart.resetDemand();
+            });
+            
+            // 供給控制按鈕
+            document.getElementById('increaseSupply').addEventListener('click', () => {
+                chart.increaseSupply();
+            });
+            
+            document.getElementById('decreaseSupply').addEventListener('click', () => {
+                chart.decreaseSupply();
+            });
+            
+            document.getElementById('resetSupply').addEventListener('click', () => {
+                chart.resetSupply();
+            });
+            
+            // 全部重設按鈕
+            document.getElementById('resetAll').addEventListener('click', () => {
+                chart.resetAll();
+            });
+            
+            // 測驗功能
+            setupQuiz();
+        });
+        
+        // 設置測驗功能
+        function setupQuiz() {
+            // 問題 1
+            const q1Inputs = document.querySelectorAll('input[name="q1"]');
+            q1Inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const answer1Div = document.getElementById('answer1');
+                    answer1Div.classList.remove('hidden');
+                    const t = translations[currentLang];
+                    
+                    if (this.value === 'A') {
+                        answer1Div.className = 'mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800';
+                        answer1Div.innerHTML = `<div class="flex items-start"><span class="text-green-600 dark:text-green-400 mr-2">✅</span><div><strong class="text-green-700 dark:text-green-300">${t.questions.q1.correct}</strong><br><span class="text-green-600 dark:text-green-400 text-sm">${t.questions.q1.explanation.correct}</span></div></div>`;
+                    } else {
+                        answer1Div.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                        answer1Div.innerHTML = `<div class="flex items-start"><span class="text-red-600 dark:text-red-400 mr-2">❌</span><div><strong class="text-red-700 dark:text-red-300">${t.questions.q1.wrong}</strong><br><span class="text-red-600 dark:text-red-400 text-sm">${t.questions.q1.explanation.wrong}</span></div></div>`;
+                    }
+                });
+            });
+            
+            // 問題 2
+            const q2Inputs = document.querySelectorAll('input[name="q2"]');
+            q2Inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const answer2Div = document.getElementById('answer2');
+                    answer2Div.classList.remove('hidden');
+                    const t = translations[currentLang];
+                    
+                    if (this.value === 'D') {
+                        answer2Div.className = 'mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800';
+                        answer2Div.innerHTML = `<div class="flex items-start"><span class="text-green-600 dark:text-green-400 mr-2">✅</span><div><strong class="text-green-700 dark:text-green-300">${t.questions.q2.correct}</strong><br><span class="text-green-600 dark:text-green-400 text-sm">${t.questions.q2.explanation.correct}</span></div></div>`;
+                    } else {
+                        answer2Div.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                        answer2Div.innerHTML = `<div class="flex items-start"><span class="text-red-600 dark:text-red-400 mr-2">❌</span><div><strong class="text-red-700 dark:text-red-300">${t.questions.q2.wrong}</strong><br><span class="text-red-600 dark:text-red-400 text-sm">${t.questions.q2.explanation.wrong}</span></div></div>`;
+                    }
+                });
+            });
+            
+            // 問題 3
+            const q3Inputs = document.querySelectorAll('input[name="q3"]');
+            q3Inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const answer3Div = document.getElementById('answer3');
+                    answer3Div.classList.remove('hidden');
+                    const t = translations[currentLang];
+                    
+                    if (this.value === 'A') {
+                        answer3Div.className = 'mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800';
+                        answer3Div.innerHTML = `<div class="flex items-start"><span class="text-green-600 dark:text-green-400 mr-2">✅</span><div><strong class="text-green-700 dark:text-green-300">${t.questions.q3.correct}</strong><br><span class="text-green-600 dark:text-green-400 text-sm">${t.questions.q3.explanation.correct}</span></div></div>`;
+                    } else {
+                        answer3Div.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                        answer3Div.innerHTML = `<div class="flex items-start"><span class="text-red-600 dark:text-red-400 mr-2">❌</span><div><strong class="text-red-700 dark:text-red-300">${t.questions.q3.wrong}</strong><br><span class="text-red-600 dark:text-red-400 text-sm">${t.questions.q3.explanation.wrong}</span></div></div>`;
+                    }
+                });
+            });
+            
+            // 問題 4
+            const q4Inputs = document.querySelectorAll('input[name="q4"]');
+            q4Inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const answer4Div = document.getElementById('answer4');
+                    answer4Div.classList.remove('hidden');
+                    const t = translations[currentLang];
+                    
+                    if (this.value === 'A') {
+                        answer4Div.className = 'mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800';
+                        answer4Div.innerHTML = `<div class="flex items-start"><span class="text-green-600 dark:text-green-400 mr-2">✅</span><div><strong class="text-green-700 dark:text-green-300">${t.questions.q4.correct}</strong><br><span class="text-green-600 dark:text-green-400 text-sm">${t.questions.q4.explanation.correct}</span></div></div>`;
+                    } else {
+                        answer4Div.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                        answer4Div.innerHTML = `<div class="flex items-start"><span class="text-red-600 dark:text-red-400 mr-2">❌</span><div><strong class="text-red-700 dark:text-red-300">${t.questions.q4.wrong}</strong><br><span class="text-red-600 dark:text-red-400 text-sm">${t.questions.q4.explanation.wrong}</span></div></div>`;
+                    }
+                });
+            });
+            
+            // 問題 5
+            const q5Inputs = document.querySelectorAll('input[name="q5"]');
+            q5Inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const answer5Div = document.getElementById('answer5');
+                    answer5Div.classList.remove('hidden');
+                    const t = translations[currentLang];
+                    
+                    if (this.value === 'B') {
+                        answer5Div.className = 'mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800';
+                        answer5Div.innerHTML = `<div class="flex items-start"><span class="text-green-600 dark:text-green-400 mr-2">✅</span><div><strong class="text-green-700 dark:text-green-300">${t.questions.q5.correct}</strong><br><span class="text-green-600 dark:text-green-400 text-sm">${t.questions.q5.explanation.correct}</span></div></div>`;
+                    } else {
+                        answer5Div.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                        answer5Div.innerHTML = `<div class="flex items-start"><span class="text-red-600 dark:text-red-400 mr-2">❌</span><div><strong class="text-red-700 dark:text-red-300">${t.questions.q5.wrong}</strong><br><span class="text-red-600 dark:text-red-400 text-sm">${t.questions.q5.explanation.wrong}</span></div></div>`;
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
