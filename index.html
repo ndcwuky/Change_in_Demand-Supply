@@ -356,7 +356,19 @@
                 const resizeCanvas = () => {
                     const container = this.canvas.parentElement;
                     const rect = container.getBoundingClientRect();
-                    const scale = Math.min(rect.width / 600, 1);
+                    
+                    // 檢測是否為手機設備（寬度小於768px）
+                    const isMobile = window.innerWidth < 768;
+                    // 檢測是否為垂直方向（高度大於寬度）
+                    const isPortrait = window.innerHeight > window.innerWidth;
+                    
+                    let scale = Math.min(rect.width / 600, 1);
+                    
+                    // 在手機垂直模式下，圖表放大一倍
+                    if (isMobile && isPortrait) {
+                        scale = Math.min(rect.width / 300, 2); // 將基準從600改為300，最大縮放2倍
+                    }
+                    
                     this.canvas.style.transform = `scale(${scale})`;
                     this.canvas.style.transformOrigin = 'top left';
                 };
